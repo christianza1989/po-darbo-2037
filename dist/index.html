@@ -1919,6 +1919,49 @@ figcaption {
   }
 }
 
+
+/* Kalbos ir balso pasirinkimo stiliai */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2px 4px;
+}
+.lang-btn {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 16px;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.lang-btn:hover {
+  color: #ffffff;
+}
+.lang-btn.active {
+  background: var(--accent-cyan);
+  color: #05070e;
+}
+.voice-select {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 16px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.voice-select:hover {
+  border-color: #38bdf8;
+}
+
   </style>
 </head>
 <body class="theme-dark gate-active">
@@ -1927,6 +1970,13 @@ figcaption {
        EGZISTENCINIAI VARTAI (Live Worldometer & 1 € Paywall Gateway)
        ========================================================================== -->
   <section id="existentialGate" class="existential-gate">
+    <div style="display: flex; justify-content: flex-end; width: 100%; max-width: 900px; margin-bottom: 12px;">
+      <div class="lang-toggle">
+        <a href="index.html" class="lang-btn active">🇱🇹 LT</a>
+        <a href="index_ru.html" class="lang-btn">🇷🇺 RU</a>
+      </div>
+    </div>
+
     <div class="existential-live-badge">
       <span class="live-pulse-dot"></span>
       TIESIOGINĖ CIVILIZACIJOS TRANSMISIJA • 2026 M. PABAIGA • KREIVĖ TIES 90°
@@ -2090,6 +2140,11 @@ figcaption {
     </div>
 
     <div class="reader-controls">
+      <div class="lang-toggle">
+        <a href="index.html" class="lang-btn active">🇱🇹 LT</a>
+        <a href="index_ru.html" class="lang-btn">🇷🇺 RU</a>
+      </div>
+
       <select class="chapter-select" id="chapterNav" onchange="navigateToChapter(this.value)">
         <option value="">-- Pasirinkite Skyrių --</option>
         <option value="#00_prologas">PROLOGAS: Paskutinis dešimtmetis, kai dirbome mes</option>
@@ -2111,9 +2166,15 @@ figcaption {
 <option value="#16_praktinis_manifestas">EPILOGAS · 16 SKYRIUS: Asmeninis išlikimo ir klestėjimo kodeksas (2027–2037 m.)</option>
       </select>
 
-      <button class="btn-pill" onclick="toggleAudioReadAlong()" id="audioBtn" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Klausytis autentiško ElevenLabs (Adam) įgarsinimo">
+      <button class="btn-pill" onclick="toggleAudioReadAlong()" id="audioBtn" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Klausytis profesionalaus įgarsinimo">
         🎧 Klausytis (Audio)
       </button>
+
+      <select class="voice-select" id="voiceSelect" onchange="changeVoice(this.value)" title="Pasirinkti įgarsinimo balsą">
+        <option value="lt" selected>🇱🇹 Leonas (LT)</option>
+        <option value="ru">🇷🇺 Дмитрий (RU)</option>
+        <option value="adam">🎙️ Adam (ElevenLabs)</option>
+      </select>
 
       <button class="btn-pill" onclick="cycleTheme()" id="themeBtn" title="Keisti spalvų temą">
         🌓 Tema
@@ -5410,39 +5471,71 @@ figcaption {
       }
     }
 
-    // Skyrių audio takelių žemėlapis
-    const chapterAudioMap = {
-      "00_prologas": "assets/audio/00_prologas.mp3",
-      "01_tyloje_kylantis_dievas": "assets/audio/01_tyloje_kylantis_dievas.mp3",
-      "02_baltuju_apykakliu_saulelydis": "assets/audio/02_baltuju_apykakliu_saulelydis.mp3",
-      "03_kas_yra_agi_ir_asi": "assets/audio/03_kas_yra_agi_ir_asi.mp3",
-      "04_paskutinis_programuotojas": "assets/audio/04_paskutinis_programuotojas.mp3",
-      "05_silicio_ir_energijos_karai": "assets/audio/05_silicio_ir_energijos_karai.mp3",
-      "06_sulaikymo_problema": "assets/audio/06_sulaikymo_problema.mp3",
-      "07_instrumentine_konvergencija": "assets/audio/07_instrumentine_konvergencija.mp3",
-      "08_humanoidu_banga": "assets/audio/08_humanoidu_banga.mp3",
-      "09_biologijos_nulauzimas": "assets/audio/09_biologijos_nulauzimas.mp3"
+    // 6. DINAMINIS AUDIO ŽEMĖLAPIS PAGAL KALBAS IR BALSUS
+    let currentVoice = "lt";
+
+    function changeVoice(voice) {
+      currentVoice = voice;
+      updateAudioTrackForCurrentChapter();
+      if (isPlayingAudio) {
+        const audio = document.getElementById("bookAudioPlayer");
+        if (audio) audio.play().catch(e => console.log(e));
+      }
+    }
+
+    const chapterAudioMapLt = {
+      "00_prologas": "assets/audio/lt/00_prologas.mp3",
+      "01_tyloje_kylantis_dievas": "assets/audio/lt/01_tyloje_kylantis_dievas.mp3",
+      "02_baltuju_apykakliu_saulelydis": "assets/audio/lt/02_baltuju_apykakliu_saulelydis.mp3",
+      "03_kas_yra_agi_ir_asi": "assets/audio/lt/03_kas_yra_agi_ir_asi.mp3",
+      "04_paskutinis_programuotojas": "assets/audio/lt/04_paskutinis_programuotojas.mp3",
+      "05_silicio_ir_energijos_karai": "assets/audio/lt/05_silicio_ir_energijos_karai.mp3",
+      "06_sulaikymo_problema": "assets/audio/lt/06_sulaikymo_problema.mp3",
+      "07_instrumentine_konvergencija": "assets/audio/lt/07_instrumentine_konvergencija.mp3",
+      "08_humanoidu_banga": "assets/audio/lt/08_humanoidu_banga.mp3",
+      "09_biologijos_nulauzimas": "assets/audio/lt/09_biologijos_nulauzimas.mp3",
+      "10_dvi_ateitys_utopija_pries_distopija": "assets/audio/lt/10_dvi_ateitys_utopija_pries_distopija.mp3",
+      "11_ekonomika_be_algu": "assets/audio/lt/11_ekonomika_be_algu.mp3",
+      "12_kas_lieka_zmogui": "assets/audio/lt/12_kas_lieka_zmogui.mp3",
+      "13_samones_perkelimas_ir_nemirtingumas": "assets/audio/lt/13_samones_perkelimas_ir_nemirtingumas.mp3",
+      "14_dyson_sferos_ir_zvaigzdziu_inzinerija": "assets/audio/lt/14_dyson_sferos_ir_zvaigzdziu_inzinerija.mp3",
+      "15_didysis_filtras_ir_fermi_paradoksas": "assets/audio/lt/15_didysis_filtras_ir_fermi_paradoksas.mp3",
+      "16_praktinis_manifestas": "assets/audio/lt/16_praktinis_manifestas.mp3"
     };
 
-    function getActiveChapterId() {
-      const hash = window.location.hash.replace("#", "");
-      if (hash && chapterAudioMap[hash]) return hash;
-      const sections = document.querySelectorAll(".chapter");
-      let currentId = "00_prologas";
-      const scrollPos = window.scrollY + 160;
-      sections.forEach(sec => {
-        if (sec.offsetTop <= scrollPos) {
-          currentId = sec.id;
-        }
-      });
-      return currentId;
-    }
+    const chapterAudioMapRu = {
+      "00_prologas": "assets/audio/ru/00_prologas.mp3",
+      "01_tyloje_kylantis_dievas": "assets/audio/ru/01_tyloje_kylantis_dievas.mp3",
+      "02_baltuju_apykakliu_saulelydis": "assets/audio/ru/02_baltuju_apykakliu_saulelydis.mp3",
+      "03_kas_yra_agi_ir_asi": "assets/audio/ru/03_kas_yra_agi_ir_asi.mp3",
+      "04_paskutinis_programuotojas": "assets/audio/ru/04_paskutinis_programuotojas.mp3",
+      "05_silicio_ir_energijos_karai": "assets/audio/ru/05_silicio_ir_energijos_karai.mp3",
+      "06_sulaikymo_problema": "assets/audio/ru/06_sulaikymo_problema.mp3",
+      "07_instrumentine_konvergencija": "assets/audio/ru/07_instrumentine_konvergencija.mp3",
+      "08_humanoidu_banga": "assets/audio/ru/08_humanoidu_banga.mp3",
+      "09_biologijos_nulauzimas": "assets/audio/ru/09_biologijos_nulauzimas.mp3",
+      "10_dvi_ateitys_utopija_pries_distopija": "assets/audio/ru/10_dvi_ateitys_utopija_pries_distopija.mp3",
+      "11_ekonomika_be_algu": "assets/audio/ru/11_ekonomika_be_algu.mp3",
+      "12_kas_lieka_zmogui": "assets/audio/ru/12_kas_lieka_zmogui.mp3",
+      "13_samones_perkelimas_ir_nemirtingumas": "assets/audio/ru/13_samones_perkelimas_ir_nemirtingumas.mp3",
+      "14_dyson_sferos_ir_zvaigzdziu_inzinerija": "assets/audio/ru/14_dyson_sferos_ir_zvaigzdziu_inzinerija.mp3",
+      "15_didysis_filtras_ir_fermi_paradoksas": "assets/audio/ru/15_didysis_filtras_ir_fermi_paradoksas.mp3",
+      "16_praktinis_manifestas": "assets/audio/ru/16_praktinis_manifestas.mp3"
+    };
 
     function updateAudioTrackForCurrentChapter() {
       const audio = document.getElementById("bookAudioPlayer");
       if (!audio) return;
       const chId = getActiveChapterId();
-      const track = chapterAudioMap[chId] || "assets/audio/00_prologas.mp3";
+      let track = "";
+      if (currentVoice === "ru") {
+        track = chapterAudioMapRu[chId] || "assets/audio/ru/00_prologas.mp3";
+      } else if (currentVoice === "adam") {
+        track = "assets/audio/adam/" + chId + ".mp3";
+      } else {
+        track = chapterAudioMapLt[chId] || "assets/audio/lt/00_prologas.mp3";
+      }
+
       if (!audio.src.endsWith(track)) {
         const wasPlaying = isPlayingAudio;
         audio.src = track;
@@ -5451,11 +5544,6 @@ figcaption {
         }
       }
     }
-
-    // 7. REALUS AUDIO GROTUVAS SU BĖGANČIU TEKSTU
-    let isPlayingAudio = false;
-    let audioTimer = null;
-    let currentParagraphIdx = 0;
 
     function toggleAudioReadAlong() {
       const btn = document.getElementById("audioBtn");

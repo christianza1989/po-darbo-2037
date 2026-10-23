@@ -1909,3 +1909,46 @@ figcaption {
     font-size: 0.86rem !important;
   }
 }
+
+
+/* Kalbos ir balso pasirinkimo stiliai */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2px 4px;
+}
+.lang-btn {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 16px;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.lang-btn:hover {
+  color: #ffffff;
+}
+.lang-btn.active {
+  background: var(--accent-cyan);
+  color: #05070e;
+}
+.voice-select {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 16px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.voice-select:hover {
+  border-color: #38bdf8;
+}
