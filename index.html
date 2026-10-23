@@ -4882,6 +4882,49 @@ figcaption {
     function navigateToChapter(hash) {
       if (hash) {
         window.location.hash = hash;
+        setTimeout(updateAudioTrackForCurrentChapter, 150);
+      }
+    }
+
+    // Skyrių audio takelių žemėlapis
+    const chapterAudioMap = {
+      "00_prologas": "assets/audio/00_prologas.mp3",
+      "01_tyloje_kylantis_dievas": "assets/audio/01_tyloje_kylantis_dievas.mp3",
+      "02_baltuju_apykakliu_saulelydis": "assets/audio/02_baltuju_apykakliu_saulelydis.mp3",
+      "03_kas_yra_agi_ir_asi": "assets/audio/03_kas_yra_agi_ir_asi.mp3",
+      "04_paskutinis_programuotojas": "assets/audio/04_paskutinis_programuotojas.mp3",
+      "05_silicio_ir_energijos_karai": "assets/audio/05_silicio_ir_energijos_karai.mp3",
+      "06_sulaikymo_problema": "assets/audio/06_sulaikymo_problema.mp3",
+      "07_instrumentine_konvergencija": "assets/audio/07_instrumentine_konvergencija.mp3",
+      "08_humanoidu_banga": "assets/audio/08_humanoidu_banga.mp3",
+      "09_biologijos_nulauzimas": "assets/audio/09_biologijos_nulauzimas.mp3"
+    };
+
+    function getActiveChapterId() {
+      const hash = window.location.hash.replace("#", "");
+      if (hash && chapterAudioMap[hash]) return hash;
+      const sections = document.querySelectorAll(".chapter");
+      let currentId = "00_prologas";
+      const scrollPos = window.scrollY + 160;
+      sections.forEach(sec => {
+        if (sec.offsetTop <= scrollPos) {
+          currentId = sec.id;
+        }
+      });
+      return currentId;
+    }
+
+    function updateAudioTrackForCurrentChapter() {
+      const audio = document.getElementById("bookAudioPlayer");
+      if (!audio) return;
+      const chId = getActiveChapterId();
+      const track = chapterAudioMap[chId] || "assets/audio/00_prologas.mp3";
+      if (!audio.src.endsWith(track)) {
+        const wasPlaying = isPlayingAudio;
+        audio.src = track;
+        if (wasPlaying) {
+          audio.play().catch(e => console.log(e));
+        }
       }
     }
 
@@ -4894,6 +4937,8 @@ figcaption {
       const btn = document.getElementById("audioBtn");
       const audio = document.getElementById("bookAudioPlayer");
       const paragraphs = document.querySelectorAll(".book-container p:not(.book-subtitle), .book-container blockquote");
+      
+      updateAudioTrackForCurrentChapter();
       
       if (!isPlayingAudio) {
         isPlayingAudio = true;
