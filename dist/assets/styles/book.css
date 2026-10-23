@@ -1649,6 +1649,171 @@ figcaption {
   margin-bottom: 24px;
 }
 
+/* Naujas Bespoke Maketas ir Korteles */
+.wiki-bespoke-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Citatos Kortele */
+.wiki-quote-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border-left: 4px solid #38bdf8;
+  border-radius: 0 14px 14px 0;
+  padding: 16px 20px;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.wiki-quote-card.crimson { border-left-color: #f43f5e; }
+.wiki-quote-card.amber { border-left-color: #f59e0b; }
+.wiki-quote-card.purple { border-left-color: #a855f7; }
+.wiki-quote-card.emerald { border-left-color: #10b981; }
+
+.wiki-quote-text {
+  font-family: var(--font-serif, 'Georgia', serif);
+  font-size: 1.02rem;
+  font-style: italic;
+  line-height: 1.55;
+  color: #f1f5f9;
+  margin-bottom: 8px;
+}
+
+.wiki-quote-author {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: #94a3b8;
+  text-align: right;
+  letter-spacing: 0.04em;
+}
+
+/* Statistiniu rodikliu lentele */
+.wiki-stat-banner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.wiki-stat-pill {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.wiki-stat-val {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #38bdf8;
+  line-height: 1.2;
+}
+
+.wiki-stat-val.crimson { color: #f43f5e; }
+.wiki-stat-val.amber { color: #f59e0b; }
+.wiki-stat-val.purple { color: #a855f7; }
+.wiki-stat-val.emerald { color: #10b981; }
+
+.wiki-stat-lbl {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Individuali Bespoke Kortele */
+.wiki-bespoke-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 16px 20px;
+  transition: all 0.25s ease;
+}
+
+.wiki-bespoke-card:hover {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(15, 23, 42, 0.85);
+  transform: translateY(-1px);
+}
+
+.wiki-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.wiki-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #38bdf8;
+}
+
+.wiki-card-title.crimson { color: #f43f5e; }
+.wiki-card-title.amber { color: #f59e0b; }
+.wiki-card-title.purple { color: #a855f7; }
+.wiki-card-title.emerald { color: #10b981; }
+
+.wiki-card-body {
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  line-height: 1.62;
+  color: #cbd5e1;
+}
+
+.wiki-card-body p {
+  margin: 0 0 8px 0;
+}
+
+.wiki-card-body p:last-child {
+  margin-bottom: 0;
+}
+
+.wiki-card-body strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Verdikto Kortele */
+.wiki-verdict-card {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 20px rgba(244, 63, 94, 0.1);
+}
+
+.wiki-verdict-card.purple {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border-color: rgba(168, 85, 247, 0.35);
+}
+
+.wiki-verdict-card.cyan {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.wiki-verdict-card.amber {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.wiki-verdict-card.emerald {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
 /* 4 Enciklopedines Korteles */
 .wiki-grid {
   display: flex;
