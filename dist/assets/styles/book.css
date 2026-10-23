@@ -1470,3 +1470,277 @@ figcaption {
     display: none !important;
   }
 }
+
+
+/* ==========================================================================
+   MINI-WIKIPEDIA KOGNITYVINIS ZINYNAS (INTERACTIVE GLOSSARY MODAL)
+   ========================================================================== */
+.wiki-term {
+  color: #38bdf8 !important;
+  border-bottom: 1.5px dotted rgba(56, 189, 248, 0.7);
+  cursor: pointer;
+  padding: 1px 3px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  position: relative;
+  display: inline;
+  font-weight: 500;
+}
+
+.wiki-term:hover {
+  background: rgba(56, 189, 248, 0.15);
+  color: #ffffff !important;
+  border-bottom-color: #38bdf8;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+.wiki-term::after {
+  content: ' ℹ';
+  font-size: 0.65em;
+  opacity: 0.7;
+  color: #38bdf8;
+  vertical-align: super;
+}
+
+/* Modalo persidengimas */
+.wiki-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wiki-modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.wiki-modal-card {
+  background: linear-gradient(180deg, #0e1628 0%, #070b14 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9), 0 0 50px rgba(56, 189, 248, 0.18);
+  border-radius: 24px;
+  max-width: 680px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  position: relative;
+  transform: translateY(24px) scale(0.96);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 32px 28px;
+  color: #e2e8f0;
+  text-align: left;
+}
+
+.wiki-modal-overlay.active .wiki-modal-card {
+  transform: translateY(0) scale(1);
+}
+
+.wiki-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.wiki-header-left {
+  flex: 1;
+}
+
+.wiki-category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  margin-bottom: 10px;
+}
+
+.wiki-category-badge.crimson {
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.3);
+  color: #f43f5e;
+}
+
+.wiki-category-badge.purple {
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #a855f7;
+}
+
+.wiki-category-badge.emerald {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.wiki-category-badge.amber {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+}
+
+.wiki-title {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  color: #ffffff;
+  margin-bottom: 4px;
+  line-height: 1.25;
+}
+
+.wiki-en-title {
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.wiki-btn-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.wiki-btn-close:hover {
+  background: rgba(244, 63, 94, 0.2);
+  color: #f43f5e;
+  border-color: #f43f5e;
+  transform: rotate(90deg);
+}
+
+.wiki-summary-box {
+  background: rgba(15, 23, 42, 0.7);
+  border-left: 3px solid #38bdf8;
+  padding: 14px 18px;
+  border-radius: 0 12px 12px 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+  margin-bottom: 24px;
+}
+
+/* 4 Enciklopedines Korteles */
+.wiki-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.wiki-card-item {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 16px 20px;
+  transition: border-color 0.2s ease;
+}
+
+.wiki-card-item:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.wiki-item-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #38bdf8;
+  margin-bottom: 8px;
+}
+
+.wiki-card-item.how .wiki-item-label { color: #a855f7; }
+.wiki-card-item.impact .wiki-item-label { color: #f43f5e; }
+.wiki-card-item.when .wiki-item-label { color: #10b981; }
+
+.wiki-item-text {
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.wiki-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.wiki-footer-hint {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-family: var(--font-mono);
+}
+
+.wiki-btn-dismiss {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 22px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wiki-btn-dismiss:hover {
+  background: #38bdf8;
+  color: #05070e;
+}
+
+@media screen and (max-width: 768px) {
+  .wiki-modal-card {
+    padding: 20px 16px !important;
+    border-radius: 18px !important;
+    max-height: 92vh !important;
+  }
+  .wiki-title {
+    font-size: 1.35rem !important;
+  }
+  .wiki-summary-box {
+    padding: 12px 14px !important;
+    font-size: 0.88rem !important;
+  }
+  .wiki-card-item {
+    padding: 14px 14px !important;
+  }
+  .wiki-item-text {
+    font-size: 0.86rem !important;
+  }
+}

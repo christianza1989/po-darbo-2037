@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
-AI KNYGOS KOMPILIATORIUS (Antigravity Studio Edition v3)
+AI KNYGOS KOMPILIATORIUS (Antigravity Studio Edition v4)
 Sujungia visus skyrius is /chapters katalogo, pritaiko profesionalius leidybinius stilius,
-iterpia Egzistencinius Vartus, 1 EUR mokejimo simuliacija, audio grotuva su ADAM (ElevenLabs)
-bei sugeneruoja galutinius HTML failus i /dist/index.html ir projekto sakni /index.html.
+automatiškai pažymi svarbiausius terminus ir asmenybes (Mini-Wikipedia žinynas),
+įterpia Egzistencinius Vartus, 1 EUR mokėjimo simuliaciją, audio grotuvą su ADAM (ElevenLabs)
+bei sugeneruoja galutinius HTML failus į /dist/index.html ir projekto šaknį /index.html.
 """
 
 import os
 import sys
 import re
+import json
 import markdown
 
 if sys.platform == "win32":
@@ -19,6 +21,64 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CHAPTERS_DIR = os.path.join(BASE_DIR, "chapters")
 STYLES_DIR = os.path.join(BASE_DIR, "assets", "styles")
 DIST_DIR = os.path.join(BASE_DIR, "dist")
+GLOSSARY_PATH = os.path.join(BASE_DIR, "research", "glossary_data.json")
+
+# Užkrauname žodyno duomenų bazę
+with open(GLOSSARY_PATH, "r", encoding="utf-8") as f:
+    GLOSSARY_DATA = json.load(f)
+
+# Žodžių atpažinimo šablonai
+TERMS_PATTERNS = [
+    ("singuliarumas", r"\b(Singuliarumo|Singuliarumą|Singuliarumas|Singuliarumui|Singuliarume|singuliarumo|singuliarumą|singuliarumas|singuliarumui|singuliarume)\b"),
+    ("alan_turing", r"\b(Alano Turingo|Alanas Turingas|Alano Tiuringo|Alanas Tiuringas|Alan Turing|Alanu Turingu|Alanui Turingui|Tiuringo testas|Tiuringo testą)\b"),
+    ("dartmouth_1956", r"\b(Dartmuto vasara|Dartmuto koledže|Dartmuto seminaras|Dartmuto|Dartmouth)\b"),
+    ("agi", r"\b(AGI|Bendrasis Dirbtinis Intelektas|Bendrojo Dirbtinio Intelekto)\b"),
+    ("asi", r"\b(ASI|Superintelekto|Superintelektas|Superintelektui|Superintelektą)\b"),
+    ("tokenas", r"\b(tokenas|tokenai|tokenų|tokenams|tokenus|tokenais|Tokenas|Tokenai|Tokenų)\b"),
+    ("embedding", r"\b(embedding|embeddingas|embeddingai|embeddingus|Embedding|Embeddingai)\b"),
+    ("transformer", r"\b(transformeriai|transformerių|transformeriams|transformerių architektūra|Self-Attention|Transformer|Transformers)\b"),
+    ("geoffrey_hinton", r"\b(Geoffrey Hinton|Geoffrey Hintono|Hintonas|Hintono|Hintonui)\b"),
+    ("ilya_sutskever", r"\b(Ilya Sutskever|Ilyos Sutskeverio|Sutskeveris|Sutskeverio)\b"),
+    ("demis_hassabis", r"\b(Demis Hassabis|Demio Hassabio|Hassabis|Hassabio)\b"),
+    ("dario_amodei", r"\b(Dario Amodei|Dario Amodeiui|Amodei)\b"),
+    ("sam_altman", r"\b(Sam Altman|Samo Altmano|Altmanas|Altmano)\b"),
+    ("jensen_huang", r"\b(Jensen Huang|Jenseno Huango|Huangas|Huango)\b"),
+    ("mo_gawdat", r"\b(Mo Gawdat|Mo Gawdato|Gawdatas|Gawdato)\b"),
+    ("yuval_noah_harari", r"\b(Yuval Noah Harari|Hararis|Harario)\b"),
+    ("nick_bostrom", r"\b(Nick Bostrom|Nicko Bostromo|Bostromas|Bostromo)\b"),
+    ("roman_yampolskiy", r"\b(Roman Yampolskiy|Romano Yampolskio|Yampolskis|Yampolskio)\b"),
+    ("sulaikymo_problema", r"\b(Sulaikymo problema|sulaikymo problema|Sulaikymo problemos|sulaikymo problemos|Sulaikymo problemą)\b"),
+    ("instrumentine_konvergencija", r"\b(Instrumentinė konvergencija|instrumentinė konvergencija|Instrumentinės konvergencijos|instrumentinės konvergencijos)\b"),
+    ("alignment_faking", r"\b(Alignment Faking|alignment faking|apsimestinis lygiavimas|apsimestinio lygiavimo)\b"),
+    ("moraveco_paradoksas", r"\b(Moraveco paradoksas|moraveco paradoksas|Moraveco paradokso|moraveco paradokso)\b"),
+    ("humanoidai", r"\b(humanoidai|humanoidų|humanoidams|humanoidus|Humanoidai|Humanoidų|Optimus|Figure 02)\b"),
+    ("alphafold", r"\b(AlphaFold|AlphaFold 3|AlphaFold 2)\b"),
+    ("yamanaka", r"\b(Yamanaka|Yamanakos faktoriai|OSKM faktoriai|epigenetinis laikrodis)\b"),
+    ("asml", r"\b(ASML|EUV litografija|EUV)\b"),
+    ("tsmc", r"\b(TSMC|Taivano puslaidininkių)\b"),
+    ("dyson_sfera", r"\b(Dyson sfera|Dyson sferos|Dyson sferą|Dyson sferų|Dyson Swarm)\b"),
+    ("computronium", r"\b(kompiutronis|kompiutronio|Computronium)\b"),
+    ("didysis_filtras", r"\b(Didysis Filtras|Didysis filtras|Didžiojo Filtro|Didžiojo filtro)\b"),
+    ("world_model", r"\b(Pasaulio modelis|Pasaulio modeliai|pasaulio modelis|pasaulio modeliai|World Model|World Models)\b"),
+    ("ubi", r"\b(UBI|UBC|Visuotinės Bazinės Pajamos|bazinės pajamos|bazinių pajamų)\b"),
+    ("mind_uploading", r"\b(Sąmonės perkėlimas|sąmonės perkėlimas|Sąmonės perkėlimo|sąmonės perkėlimo|Mind Uploading)\b"),
+    ("karpathy_software", r"\b(Software 1\.0|Software 2\.0|Software 3\.0|Andrej Karpathy|Karpathy)\b"),
+    ("one_person_unicorn", r"\b(1 žmogaus vienaragis|vienaragio|vienaragį|One-person unicorn)\b")
+]
+
+def auto_tag_glossary(html):
+    parts = re.split(r"(<[^>]+>)", html)
+    for key, pat in TERMS_PATTERNS:
+        count = 0
+        for i in range(len(parts)):
+            if not parts[i].startswith("<") and count < 3:
+                def repl(m):
+                    nonlocal count
+                    count += 1
+                    word = m.group(0)
+                    return f'<span class="wiki-term" onclick="openWikiModal(\'{key}\')" title="Spustelėkite analizei: {word}">{word}</span>'
+                parts[i] = re.sub(pat, repl, parts[i], count=3 - count)
+    return "".join(parts)
 
 def get_chapter_files():
     files = [f for f in os.listdir(CHAPTERS_DIR) if f.endswith(".md")]
@@ -61,7 +121,6 @@ def compile_book():
 
     for cpath in chapter_files:
         raw_text = read_file(cpath)
-        # Pataisome santykinius paveiksleliu kelius, kad veiktu ir saknyje, ir dist/
         raw_text = re.sub(r'src="\.\./assets/images/', 'src="assets/images/', raw_text)
 
         basename = os.path.basename(cpath)
@@ -75,9 +134,14 @@ def compile_book():
             raw_text,
             extensions=["tables", "fenced_code", "nl2br", "sane_lists"]
         )
+        
+        # Pritaiko kognityvinį terminų ženklinimą
+        html = auto_tag_glossary(html)
+        
         rendered_chapters.append(f'<section class="chapter" id="{info["id"]}">{html}</section>')
 
     select_html = chr(10).join(chapter_options)
+    glossary_json_str = json.dumps(GLOSSARY_DATA, ensure_ascii=False)
 
     full_html = f"""<!DOCTYPE html>
 <html lang="lt">
@@ -235,6 +299,53 @@ def compile_book():
   </div>
 
   <!-- ==========================================================================
+       MINI-WIKIPEDIA KOGNITYVINIS ŽINYNAS (MODALAS)
+       ========================================================================== -->
+  <div id="wikiModalOverlay" class="wiki-modal-overlay" onclick="closeWikiModalOnBackdrop(event)">
+    <div class="wiki-modal-card" id="wikiModalCard">
+      <div class="wiki-modal-header">
+        <div class="wiki-header-left">
+          <div class="wiki-category-badge cyan" id="wikiBadge">KOGNITYVINIS TERMINAS</div>
+          <h2 class="wiki-title" id="wikiTitle">Technologinis Singuliarumas</h2>
+          <div class="wiki-en-title" id="wikiEnTitle">Technological Singularity</div>
+        </div>
+        <button class="wiki-btn-close" onclick="closeWikiModal()" title="Uždaryti langą (ESC)">✕</button>
+      </div>
+
+      <div class="wiki-summary-box" id="wikiSummary">
+        Hipotetinis civilizacijos taškas...
+      </div>
+
+      <div class="wiki-grid">
+        <div class="wiki-card-item what">
+          <div class="wiki-item-label">🔍 Kas tai yra? (Esmė paprastai / Level 1)</div>
+          <div class="wiki-item-text" id="wikiWhat">...</div>
+        </div>
+
+        <div class="wiki-card-item how">
+          <div class="wiki-item-label">⚙️ Kaip tai veikia? (Gilus mechanizmas / Level 99)</div>
+          <div class="wiki-item-text" id="wikiHow">...</div>
+        </div>
+
+        <div class="wiki-card-item impact">
+          <div class="wiki-item-label">💥 Kodėl tai lemia tavo ateitį? (Egzistencinis poveikis)</div>
+          <div class="wiki-item-text" id="wikiImpact">...</div>
+        </div>
+
+        <div class="wiki-card-item when">
+          <div class="wiki-item-label">⏳ Kada tai įvyks? (Insiderių prognozė)</div>
+          <div class="wiki-item-text" id="wikiWhen">...</div>
+        </div>
+      </div>
+
+      <div class="wiki-modal-footer">
+        <span class="wiki-footer-hint">PO DARBO • Kognityvinė Enciklopedija</span>
+        <button class="wiki-btn-dismiss" onclick="closeWikiModal()">Supratau ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
        VIRŠUTINIS INTERAKTYVUS VALDYMO SKYDELIS
        ========================================================================== -->
   <header class="reader-toolbar" id="mainToolbar" style="display: none;">
@@ -272,7 +383,6 @@ def compile_book():
     <audio id="bookAudioPlayer" preload="auto">
       <source src="assets/audio/00_prologas.mp3" type="audio/mpeg">
       <source src="../assets/audio/00_prologas.mp3" type="audio/mpeg">
-      <source src="assets/sample_brian.mp3" type="audio/mpeg">
     </audio>
   </header>
 
@@ -289,9 +399,45 @@ def compile_book():
   </div>
 
   <!-- ==========================================================================
-       INTERAKTYVŪS SKRIPTAI (Worldometer, Paywall, Audio, DRM)
+       INTERAKTYVŪS SKRIPTAI (Worldometer, Paywall, Audio, Wiki, DRM)
        ========================================================================== -->
   <script>
+    // 0. MINI-WIKIPEDIA DUOMENŲ BAZĖ
+    const GLOSSARY_DB = {glossary_json_str};
+
+    function openWikiModal(termKey) {{
+      const modal = document.getElementById("wikiModalOverlay");
+      const data = GLOSSARY_DB[termKey];
+      if (!modal || !data) return;
+
+      playSciFiChime('wiki');
+
+      const badge = document.getElementById("wikiBadge");
+      badge.textContent = data.category || "KOGNITYVINIS TERMINAS";
+      badge.className = "wiki-category-badge " + (data.badge_color || "cyan");
+
+      document.getElementById("wikiTitle").textContent = data.title;
+      document.getElementById("wikiEnTitle").textContent = data.en_title || "";
+      document.getElementById("wikiSummary").textContent = data.summary;
+      document.getElementById("wikiWhat").textContent = data.what;
+      document.getElementById("wikiHow").textContent = data.how;
+      document.getElementById("wikiImpact").textContent = data.impact;
+      document.getElementById("wikiWhen").textContent = data.when;
+
+      modal.classList.add("active");
+    }}
+
+    function closeWikiModal() {{
+      const modal = document.getElementById("wikiModalOverlay");
+      if (modal) modal.classList.remove("active");
+    }}
+
+    function closeWikiModalOnBackdrop(e) {{
+      if (e.target && e.target.id === "wikiModalOverlay") {{
+        closeWikiModal();
+      }}
+    }}
+
     // 1. WORLDOMETER REAL-TIME TIKINIMO LOGIKA
     let popVal = 8188419250;
     let deathsVal = 146820;
@@ -340,6 +486,18 @@ def compile_book():
           gain.connect(ctx.destination);
           osc.start();
           osc.stop(ctx.currentTime + 0.3);
+        }} else if (type === 'wiki') {{
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(987.77, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1318.51, ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.18);
         }} else if (type === 'success') {{
           const freqs = [523.25, 659.25, 783.99, 1046.50];
           freqs.forEach((f, idx) => {{
@@ -477,6 +635,9 @@ def compile_book():
     }});
 
     document.addEventListener('keydown', e => {{
+      if (e.key === "Escape") {{
+        closeWikiModal();
+      }}
       const k = e.key.toLowerCase();
       if ((e.ctrlKey || e.metaKey) && ['c', 'u', 's', 'p', 'a'].includes(k)) {{
         e.preventDefault();
@@ -496,7 +657,7 @@ def compile_book():
       }}
     }});
 
-    // 6. SKAITYMO PROGRESO SEKIMAS
+    // 6. SKAITYMO PROGRESO SEKIMAS IR AUDIO TAKELIŲ VALDYMAS
     window.addEventListener('scroll', () => {{
       const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
       const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -567,7 +728,7 @@ def compile_book():
       const paragraphs = document.querySelectorAll(".book-container p:not(.book-subtitle), .book-container blockquote");
       
       updateAudioTrackForCurrentChapter();
-      
+
       if (!isPlayingAudio) {{
         isPlayingAudio = true;
         btn.innerHTML = "⏸️ Pauzė";
