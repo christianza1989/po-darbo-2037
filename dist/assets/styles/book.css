@@ -1,0 +1,949 @@
+/* ==========================================================================
+   AI KNYGA: PO DARBO (2027–2037)
+   Profesionalus leidybinis stilius: Interaktyvus E-Skaitymas ir PDF Spaudos Maketas
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  /* Numatytoji Tamsi Tema (Deep Cyber-Space / Analytica) */
+  --bg-main: #07090e;
+  --bg-surface: #0e121a;
+  --bg-card: #141b27;
+  --bg-accent: #1e293b;
+  --bg-toolbar: rgba(10, 13, 20, 0.88);
+  
+  --text-primary: #e6edf3;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-heading: #ffffff;
+  
+  --accent-cyan: #38bdf8;
+  --accent-crimson: #f43f5e;
+  --accent-amber: #f59e0b;
+  --accent-emerald: #10b981;
+  --accent-purple: #a855f7;
+  
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --font-serif: 'Lora', Georgia, Cambria, serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Cinzel', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Šviesi Leidybinė Tema (Clean Editorial White) */
+body.theme-light {
+  --bg-main: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-card: #f1f5f9;
+  --bg-accent: #e2e8f0;
+  --bg-toolbar: rgba(255, 255, 255, 0.92);
+  
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-heading: #0f172a;
+  
+  --accent-cyan: #0284c7;
+  --accent-crimson: #e11d48;
+  --accent-amber: #d97706;
+  --accent-emerald: #059669;
+  --accent-purple: #7c3aed;
+  
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.18);
+}
+
+/* Šilta Knygos Sepija Tema (Warm Book Paper) */
+body.theme-sepia {
+  --bg-main: #fbf0d9;
+  --bg-surface: #f4e5c8;
+  --bg-card: #ebd9b5;
+  --bg-accent: #dfc8a0;
+  --bg-toolbar: rgba(244, 229, 200, 0.92);
+  
+  --text-primary: #2d241e;
+  --text-secondary: #5a493e;
+  --text-muted: #7d6859;
+  --text-heading: #1e150f;
+  
+  --accent-cyan: #007791;
+  --accent-crimson: #c0392b;
+  --accent-amber: #b7791f;
+  --accent-emerald: #27ae60;
+  --accent-purple: #8e44ad;
+  
+  --border-subtle: rgba(45, 36, 30, 0.1);
+  --border-strong: rgba(45, 36, 30, 0.22);
+}
+
+/* Reset ir baziškumas */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 17px;
+  scroll-behavior: smooth;
+  background-color: var(--bg-main);
+  transition: background-color 0.3s ease;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  line-height: 1.85;
+  letter-spacing: -0.002em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  
+  /* TURINIO APSAUGOS SKYDAS (Anti-Copy / DRM-Lite) */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Nuotraukų vilkimo blokavimas */
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: auto;
+}
+
+/* AUDIO SKAITYMO AKTYVAUS TEKSTO ŠVYTĖJIMAS (Read-Along Karaoke Highlight) */
+.active-reading-chunk {
+  background: rgba(56, 189, 248, 0.14) !important;
+  border-left: 3px solid var(--accent-cyan) !important;
+  padding-left: 10px !important;
+  border-radius: 4px;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.15);
+  transition: all 0.35s ease;
+}
+
+/* ==========================================================================
+   INTERAKTYVUS VIRŠUTINIS VALDYMO SKYDELIS (READER TOOLBAR)
+   ========================================================================== */
+.reader-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: var(--bg-toolbar);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 1000;
+  font-family: var(--font-sans);
+}
+
+.reader-progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.reader-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+  transition: width 0.1s linear;
+}
+
+.reader-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  color: var(--text-heading);
+}
+
+.reader-brand .pill-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  text-transform: uppercase;
+}
+
+.reader-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chapter-select {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.btn-pill {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-pill:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.btn-print {
+  background: var(--accent-cyan);
+  color: #07090e !important;
+  font-weight: 600;
+  border: none;
+}
+
+.btn-print:hover {
+  background: #7dd3fc;
+  color: #07090e !important;
+}
+
+/* ==========================================================================
+   PAGRINDINIS KNYGOS MAKETAS
+   ========================================================================== */
+.book-container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 90px 24px 140px 24px;
+}
+
+/* Antraštės */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  color: var(--text-heading);
+  letter-spacing: -0.025em;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* Viršelis ir skyriaus pradžia */
+.book-cover {
+  padding: 60px 0 80px 0;
+  text-align: center;
+  border-bottom: 2px solid var(--border-subtle);
+  margin-bottom: 80px;
+}
+
+.book-tagline {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+  margin-bottom: 24px;
+  display: inline-block;
+}
+
+.book-main-title {
+  font-family: var(--font-display);
+  font-size: 3.6rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, var(--text-heading) 40%, var(--text-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.book-subtitle {
+  font-family: var(--font-sans);
+  font-size: 1.35rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 720px;
+  margin: 0 auto 36px auto;
+  font-weight: 300;
+}
+
+.book-meta-bar {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex-wrap: wrap;
+}
+
+/* Skyrių atskyrimai */
+.chapter {
+  margin-bottom: 120px;
+  padding-top: 60px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.chapter-number {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.chapter-title {
+  font-size: 2.5rem;
+  margin-bottom: 24px;
+  line-height: 1.2;
+}
+
+.chapter-lead {
+  font-family: var(--font-sans);
+  font-size: 1.3rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  margin-bottom: 36px;
+  font-weight: 400;
+  border-left: 3px solid var(--accent-cyan);
+  padding-left: 20px;
+}
+
+/* Pastraipos ir formatavimas */
+p {
+  margin-bottom: 24px;
+}
+
+.drop-cap::first-letter {
+  font-family: var(--font-display);
+  font-size: 4.8rem;
+  float: left;
+  line-height: 0.8;
+  margin-right: 14px;
+  margin-top: 6px;
+  color: var(--accent-cyan);
+  font-weight: 900;
+}
+
+h3 {
+  font-size: 1.6rem;
+  margin-top: 48px;
+  margin-bottom: 20px;
+  color: var(--text-heading);
+}
+
+/* Citatos iš podkasto ir ekspertų */
+blockquote.expert-quote {
+  margin: 40px 0;
+  padding: 30px 36px;
+  background: var(--bg-surface);
+  border-left: 4px solid var(--accent-cyan);
+  border-radius: 0 14px 14px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.25rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+  position: relative;
+}
+
+blockquote.expert-quote cite {
+  display: block;
+  margin-top: 16px;
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+blockquote.expert-quote cite span {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* Bauginančios / Doomerių pastabos */
+.warning-box {
+  margin: 40px 0;
+  padding: 28px 32px;
+  background: rgba(244, 63, 94, 0.06);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  border-left: 5px solid var(--accent-crimson);
+  border-radius: 0 14px 14px 0;
+  font-family: var(--font-sans);
+}
+
+.warning-box h4 {
+  color: var(--accent-crimson);
+  font-size: 1.15rem;
+  margin-bottom: 12px;
+}
+
+.warning-box p {
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  line-height: 1.7;
+  margin-bottom: 0;
+  font-family: var(--font-serif);
+}
+
+/* Koncepcijų ir įžvalgų kortelės */
+.concept-card {
+  margin: 40px 0;
+  padding: 28px 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  font-family: var(--font-sans);
+}
+
+.concept-card h4 {
+  color: var(--accent-cyan);
+  font-size: 1.15rem;
+  margin-bottom: 12px;
+}
+
+.concept-card p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 0;
+}
+
+/* Duomenų lentelės */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 45px 0;
+  border-radius: 12px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-surface);
+}
+
+table.book-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+table.book-table th, table.book-table td {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+table.book-table th {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-heading);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+table.book-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Infografiko konteineris */
+.infographic-wrapper {
+  margin: 60px 0;
+  padding: 32px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+.infographic-header {
+  text-align: center;
+  margin-bottom: 28px;
+  font-family: var(--font-sans);
+}
+
+.infographic-header .badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 999px;
+  color: var(--accent-cyan);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.infographic-header h3 {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+
+.infographic-header p {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+.infographic-wrapper svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Turinys */
+.toc-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 40px;
+  margin: 60px 0;
+  font-family: var(--font-sans);
+}
+
+.toc-box h3 {
+  font-size: 1.5rem;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-cyan);
+}
+
+.toc-list {
+  list-style: none;
+}
+
+.toc-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 1.05rem;
+}
+
+.toc-item a {
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.toc-item a:hover {
+  color: var(--accent-cyan);
+}
+
+.toc-part-header {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  padding-top: 24px;
+  padding-bottom: 8px;
+}
+
+/* Iliustracijų figūros */
+figure {
+  margin: 40px 0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.4);
+}
+
+figure img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  max-height: 480px;
+}
+
+figcaption {
+  padding: 12px 18px;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  text-align: center;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ==========================================================================
+   TURINIO APSAUGA: SPAUSDINIMO IR PDF EKSPORTO BLOKAVIMAS (@media print)
+   Neleidžiama generuoti PDF failų ar spausdinti – turinys saugomas nuo piratavimo
+   ========================================================================== */
+@media print {
+  /* Visiškai paslepiame knygos turinį */
+  html, body, .reader-toolbar, .book-container, .chapter, * {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
+/* DRM ir Saugumo elementai ekrane */
+.drm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 5px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+/* Toast pranešimai apie apsaugą */
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid var(--accent-crimson);
+  padding: 14px 20px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.toast-notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   EGZISTENCINIAI VARTAI: WORLDOMETER IR 1€ PAYWALL GATEWAY
+   ========================================================================== */
+.existential-gate {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 20%, #0d1527 0%, #05070e 80%);
+  color: #f8fafc;
+  padding: 60px 24px 80px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 2px solid var(--border-strong);
+  overflow: hidden;
+}
+
+.existential-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.4);
+  color: var(--accent-crimson);
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.live-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-crimson);
+  box-shadow: 0 0 10px var(--accent-crimson);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.existential-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.8rem);
+  text-align: center;
+  color: #ffffff;
+  line-height: 1.15;
+  letter-spacing: 0.03em;
+  max-width: 950px;
+  margin-bottom: 16px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+}
+
+.existential-hero-subtitle {
+  font-family: var(--font-sans);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  text-align: center;
+  color: #94a3b8;
+  max-width: 800px;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+/* Worldometer Matricos Tinklelis */
+.worldometer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 1100px;
+  margin-bottom: 40px;
+}
+
+.worldometer-card {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 24px 20px;
+  text-align: center;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.worldometer-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.worldometer-card.card-danger {
+  border-top: 3px solid var(--accent-crimson);
+}
+
+.worldometer-card.card-warning {
+  border-top: 3px solid var(--accent-amber);
+}
+
+.worldometer-card.card-success {
+  border-top: 3px solid var(--accent-emerald);
+}
+
+.worldometer-card.card-purple {
+  border-top: 3px solid var(--accent-purple);
+}
+
+.worldometer-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.worldometer-value {
+  font-family: var(--font-mono);
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  margin-bottom: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.worldometer-desc {
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #94a3b8;
+}
+
+.worldometer-card.card-danger .worldometer-desc {
+  color: #fca5a5;
+  font-weight: 600;
+}
+
+/* Autoritetų Ženklelių Juosta */
+.authority-showcase {
+  max-width: 1000px;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.authority-title {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.authority-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.auth-chip {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.auth-chip strong {
+  color: #38bdf8;
+}
+
+/* Paywall CTA Sekcija */
+.paywall-cta-box {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.15);
+  border-radius: 20px;
+  padding: 36px 30px;
+  text-align: center;
+  max-width: 650px;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.btn-unlock-super {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  color: #05070e;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: 0.03em;
+  padding: 18px 36px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(56, 189, 248, 0.4);
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 440px;
+  margin-bottom: 14px;
+}
+
+.btn-unlock-super:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(56, 189, 248, 0.6);
+  background: linear-gradient(135deg, #7dd3fc 0%, #0ea5e9 100%);
+}
+
+.fund-promise {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.demo-unlock-link {
+  color: #94a3b8;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px;
+}
+
+.demo-unlock-link:hover {
+  color: #38bdf8;
+}
+
+/* Viral Sharing Skydelis */
+.viral-share-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.btn-share {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-share:hover {
+  background: #38bdf8;
+  color: #05070e;
+  border-color: #38bdf8;
+}

@@ -1,0 +1,614 @@
+#!/usr/bin/env python3
+"""
+AI KNYGOS KOMPILIATORIUS (Antigravity Studio Edition v2)
+Sujungia visus skyrius is /chapters katalogo, pritaiko profesionalius leidybinius stilius,
+iterpia Egzistencinius Vartus, 1 EUR mokejimo simuliacija, audio grotuva bei sugeneruoja
+galutinius HTML failus i /dist/index.html ir projekto sakni /index.html.
+"""
+
+import os
+import sys
+import re
+import markdown
+
+# Uztikriname UTF-8 spausdinima konsoleje Windows aplinkoje
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+CHAPTERS_DIR = os.path.join(BASE_DIR, "chapters")
+STYLES_DIR = os.path.join(BASE_DIR, "assets", "styles")
+DIST_DIR = os.path.join(BASE_DIR, "dist")
+
+def get_chapter_files():
+    files = [f for f in os.listdir(CHAPTERS_DIR) if f.endswith(".md")]
+    files.sort()
+    return [os.path.join(CHAPTERS_DIR, f) for f in files]
+
+def read_file(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+def extract_chapter_info(raw_text, basename):
+    m_title = re.search(r'<h2 class="chapter-title">(.*?)</h2>', raw_text)
+    if not m_title:
+        m_title = re.search(r'#\s+(.*)', raw_text)
+    title = m_title.group(1).strip() if m_title else basename.replace(".md", "").replace("_", " ").title()
+    title_clean = re.sub(r'<[^>]+>', '', title)
+    title_clean = title_clean.replace("", "—")
+    
+    m_num = re.search(r'<span class="chapter-number">(.*?)</span>', raw_text)
+    num = m_num.group(1).strip() if m_num else ""
+    num_clean = re.sub(r'<[^>]+>', '', num).replace("", "—")
+    
+    section_id = basename.replace(".md", "")
+    return {
+        "id": section_id,
+        "title": title_clean,
+        "number": num_clean,
+        "label": f"{num_clean}: {title_clean}" if num_clean else title_clean
+    }
+
+def compile_book():
+    os.makedirs(DIST_DIR, exist_ok=True)
+    css_path = os.path.join(STYLES_DIR, "book.css")
+    css_content = read_file(css_path) if os.path.exists(css_path) else ""
+
+    chapter_files = get_chapter_files()
+    rendered_chapters = []
+    chapter_options = []
+
+    print(f"Rasta skyriu: {len(chapter_files)}")
+
+    for cpath in chapter_files:
+        raw_text = read_file(cpath)
+        # Pataisome bet kokius sugadintus UTF-8 simbolius
+        raw_text = raw_text.replace("", "—")
+        # Pataisome santykinius paveiksleliu kelius, kad veiktu ir saknyje, ir dist/
+        raw_text = re.sub(r'src="\.\./assets/images/', 'src="assets/images/', raw_text)
+
+        basename = os.path.basename(cpath)
+        info = extract_chapter_info(raw_text, basename)
+        print(f" -> Apdorojamas: {basename} ({info['title']})")
+        
+        chapter_options.append(f'<option value="#{info["id"]}">{info["label"]}</option>')
+
+        # Markdown to HTML konversija
+        html = markdown.markdown(
+            raw_text,
+            extensions=["tables", "fenced_code", "nl2br", "sane_lists"]
+        )
+        rendered_chapters.append(f'<section class="chapter" id="{info["id"]}">{html}</section>')
+
+    select_html = chr(10).join(chapter_options)
+
+    full_html = f"""<!DOCTYPE html>
+<html lang="lt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PO DARBO: Kaip AI iki 2037 m. perkurs ekonomiką, valstybes ir žmogų</title>
+  <meta name="description" content="Išsami strateginė ir analitinė monografija apie dirbtinio superintelekto ir autonominės robotikos erą (2027–2037 m.)">
+  <style>
+{css_content}
+  </style>
+</head>
+<body class="theme-dark gate-active">
+
+  <!-- ==========================================================================
+       EGZISTENCINIAI VARTAI (Live Worldometer & 1 € Paywall Gateway)
+       ========================================================================== -->
+  <section id="existentialGate" class="existential-gate">
+    <div class="existential-live-badge">
+      <span class="live-pulse-dot"></span>
+      TIESIOGINĖ CIVILIZACIJOS TRANSMISIJA • 2026 M. PABAIGA • KREIVĖ TIES 90°
+    </div>
+
+    <h1 class="existential-hero-title">PO DARBO</h1>
+    <p class="existential-hero-subtitle">
+      Tu praleidai labai daug. Mes ištyrėme 1 500+ valandų didžiausių pasaulio laboratorijų ataskaitų, Nobelio laureatų ir insiderių liudijimų, kad atvertume tau akis prieš didįjį lūžį.
+    </p>
+
+    <!-- Pasaulinis Egzistencinis Skaitiklis (Worldometer Matrix) -->
+    <div class="worldometer-grid">
+      <div class="worldometer-card card-danger">
+        <div class="worldometer-label">Pasaulio Populiacija</div>
+        <div class="worldometer-value" id="counterPopulation">8,188,419,250</div>
+        <div class="worldometer-desc">99,99% pasaulio gyventojų šiuo metu nesupranta VISIŠKAI NIEKO.</div>
+      </div>
+
+      <div class="worldometer-card card-warning">
+        <div class="worldometer-label">Šiandien Mirę Žmonės</div>
+        <div class="worldometer-value" id="counterDeaths">146,820</div>
+        <div class="worldometer-desc">Šie žmonės neišgyveno to, ką netrukus išgyvensi tu.</div>
+      </div>
+
+      <div class="worldometer-card card-success">
+        <div class="worldometer-label">Šiandien Gimę Kūdikiai</div>
+        <div class="worldometer-value" id="counterBirths">371,430</div>
+        <div class="worldometer-desc">Jie taip pat neišgyvens to, ką išgyvensi tu – jų pasaulis bus neatpažįstamas.</div>
+      </div>
+
+      <div class="worldometer-card card-purple">
+        <div class="worldometer-label">Prisijungę / Prabudę</div>
+        <div class="worldometer-value" id="counterAwakened">13,345,493</div>
+        <div class="worldometer-desc">Prisijunk prie tų, kurie atsisakė rožinių akinių ir ruošiasi dabar.</div>
+      </div>
+    </div>
+
+    <!-- Proto Architektų Panteonas -->
+    <div class="authority-showcase">
+      <div class="authority-title">Monografija parengta remiantis pasaulio proto architektų liudijimais:</div>
+      <div class="authority-badges">
+        <span class="auth-chip">🏆 <strong>Geoffrey Hinton</strong> (Nobel 2024)</span>
+        <span class="auth-chip">🏆 <strong>Demis Hassabis</strong> (DeepMind, Nobel 2024)</span>
+        <span class="auth-chip">🏆 <strong>David Baker</strong> (Nobel 2024)</span>
+        <span class="auth-chip">🏆 <strong>Daron Acemoglu</strong> (Nobel 2024)</span>
+        <span class="auth-chip">🧬 <strong>Dario Amodei</strong> (Anthropic)</span>
+        <span class="auth-chip">🧠 <strong>Ilya Sutskever</strong> (SSI)</span>
+        <span class="auth-chip">⚡ <strong>Jensen Huang</strong> (NVIDIA)</span>
+        <span class="auth-chip">👁️ <strong>Mo Gawdat</strong> (Google [X])</span>
+        <span class="auth-chip">📜 <strong>Yuval Noah Harari</strong></span>
+        <span class="auth-chip">⏳ <strong>Nick Bostrom</strong> (Oksfordas)</span>
+        <span class="auth-chip">🛡️ <strong>Roman Yampolskiy</strong></span>
+        <span class="auth-chip">💡 <strong>Sam Altman</strong> (OpenAI)</span>
+      </div>
+    </div>
+
+    <!-- 1 € Paywall CTA Dėžutė -->
+    <div class="paywall-cta-box">
+      <button class="btn-unlock-super" onclick="startPaymentSimulation()">
+        ⚡ ATRAKINTI IR PRADĖTI SKAITYMĄ (1 €)
+      </button>
+
+      <div class="fund-promise">
+        🕊️ 100% visų surinktų lėšų skiriama nepriklausomam Saugaus Superintelekto (Safe ASI) ir Žmonijos Apsaugos fondui.
+      </div>
+
+      <div>
+        <button class="demo-unlock-link" onclick="quickDemoUnlock()">
+          [Demonstracinis režimas: Tiesioginis atrakinimas]
+        </button>
+      </div>
+
+      <!-- Viral Share Skydelis -->
+      <div class="viral-share-bar">
+        <span style="font-size: 0.8rem; color: #64748b; margin-right: 4px;">Pasidalink tiesa:</span>
+        <button class="btn-share" onclick="shareBook('telegram')">✈️ Telegram</button>
+        <button class="btn-share" onclick="shareBook('whatsapp')">💬 WhatsApp</button>
+        <button class="btn-share" onclick="shareBook('x')">𝕏 Twitter</button>
+        <button class="btn-share" onclick="shareBook('facebook')">📘 Facebook</button>
+        <button class="btn-share" onclick="shareBook('copy')">📋 Kopijuoti nuorodą</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       1 EUR MOKĖJIMO SIMULIACIJOS MODALAS
+       ========================================================================== -->
+  <div id="paymentModalOverlay" class="payment-modal-overlay">
+    <div class="payment-modal-card">
+      <div class="pay-modal-top">
+        <div class="pay-secure-tag">
+          🔒 ŠIFRUOTA MIKRO-TRANSAKCIJA
+        </div>
+        <div class="pay-amount-pill">
+          1,00 €
+        </div>
+      </div>
+
+      <div class="pay-fund-target">
+        <div class="pay-fund-label">Paskirtis ir Paramos Gavėjas:</div>
+        <div class="pay-fund-name">Safe ASI & Humanity Alignment Reserve</div>
+        <div class="pay-fund-sub">100% lėšų skiriama nepriklausomiems AI sulaikymo problemos tyrimams</div>
+      </div>
+
+      <!-- Live Transakcijos Žingsniai -->
+      <div class="sim-steps-list" id="simStepsContainer">
+        <div class="sim-step-item active" id="simStep1">
+          <div class="sim-step-circle"></div>
+          <div>Jungiamasi prie saugaus atsiskaitymo šliuzo (Apple Pay / Visa)...</div>
+        </div>
+
+        <div class="sim-step-item" id="simStep2">
+          <div class="sim-step-circle"></div>
+          <div>Rezervuojamas 1,00 € įnašas į Safe ASI fondą...</div>
+        </div>
+
+        <div class="sim-step-item" id="simStep3">
+          <div class="sim-step-circle"></div>
+          <div>Generuojamas asmeninis šifruotas raktas #ASI-2026-99...</div>
+        </div>
+      </div>
+
+      <!-- Sėkmės Pranešimas -->
+      <div class="sim-success-banner" id="simSuccessBanner" style="display: none;">
+        <div class="success-badge-icon">✓</div>
+        <h3 class="success-title">MOKĖJIMAS PATVIRTINTAS</h3>
+        <p class="success-sub">
+          1,00 € sėkmingai pervesta į Safe ASI rezervą.<br>
+          <strong>Sveikiname atmerkus akis.</strong> Tavo prieiga prie visos monografijos ir analitikos yra aktyvuota.
+        </p>
+        <button class="btn-proceed-reading" onclick="finalizeBookUnlock()">
+          PRADĖTI SKAITYMĄ IR ANALITIKĄ ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       VIRŠUTINIS INTERAKTYVUS VALDYMO SKYDELIS
+       ========================================================================== -->
+  <header class="reader-toolbar" id="mainToolbar" style="display: none;">
+    <div class="reader-progress-track">
+      <div class="reader-progress-bar" id="progressBar"></div>
+    </div>
+    
+    <div class="reader-brand">
+      <span>PO DARBO</span>
+      <span class="pill-badge" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
+        🟢 PRABUDĘS (1 € Apmokėta)
+      </span>
+    </div>
+
+    <div class="reader-controls">
+      <select class="chapter-select" id="chapterNav" onchange="navigateToChapter(this.value)">
+        <option value="">-- Pasirinkite Skyrių --</option>
+        {select_html}
+      </select>
+
+      <button class="btn-pill" onclick="toggleAudioReadAlong()" id="audioBtn" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Klausytis profesionalaus neuroninio įgarsinimo su bėgančiu tekstu">
+        🎧 Klausytis (Audio)
+      </button>
+
+      <button class="btn-pill" onclick="cycleTheme()" id="themeBtn" title="Keisti spalvų temą">
+        🌓 Tema
+      </button>
+
+      <span class="drm-badge" title="Turinys apsaugotas nuo neteisėto kopijavimo ir PDF eksporto">
+        🔒 DRM Apsaugota
+      </span>
+    </div>
+
+    <!-- Nematomas Audio Grotuvas -->
+    <audio id="bookAudioPlayer" preload="auto">
+      <source src="assets/audio_sample_leonas.mp3" type="audio/mpeg">
+      <source src="../assets/audio_sample_leonas.mp3" type="audio/mpeg">
+    </audio>
+  </header>
+
+  <!-- ==========================================================================
+       PAGRINDINIS KNYGOS TURINYS
+       ========================================================================== -->
+  <main class="book-container" id="bookContent" style="display: none;">
+    {chr(10).join(rendered_chapters)}
+  </main>
+
+  <!-- DRM Įspėjamasis Pranešimas (Toast) -->
+  <div id="toastNotification" class="toast-notification">
+    <span>🔒 Kopijavimas, spausdinimas ir PDF eksportas yra išjungti autorių teisių apsaugai.</span>
+  </div>
+
+  <!-- ==========================================================================
+       INTERAKTYVŪS SKRIPTAI (Worldometer, Paywall, Audio, DRM)
+       ========================================================================== -->
+  <script>
+    // 1. WORLDOMETER REAL-TIME TIKINIMO LOGIKA
+    let popVal = 8188419250;
+    let deathsVal = 146820;
+    let birthsVal = 371430;
+    let awakenedVal = 13345493;
+
+    function formatNumber(num) {{
+      return num.toLocaleString('lt-LT');
+    }}
+
+    function updateWorldometer() {{
+      popVal += Math.floor(Math.random() * 3) + 1;
+      deathsVal += (Math.random() > 0.4 ? 1 : 0);
+      birthsVal += Math.floor(Math.random() * 3) + 1;
+      if (Math.random() > 0.6) awakenedVal += 1;
+
+      const elPop = document.getElementById("counterPopulation");
+      const elDeaths = document.getElementById("counterDeaths");
+      const elBirths = document.getElementById("counterBirths");
+      const elAwakened = document.getElementById("counterAwakened");
+
+      if (elPop) elPop.textContent = formatNumber(popVal);
+      if (elDeaths) elDeaths.textContent = formatNumber(deathsVal);
+      if (elBirths) elBirths.textContent = formatNumber(birthsVal);
+      if (elAwakened) elAwakened.textContent = formatNumber(awakenedVal);
+    }}
+
+    setInterval(updateWorldometer, 700);
+
+    // 2. FUTURISTINIAI GARSO EFEKTAI (Web Audio API)
+    function playSciFiChime(type) {{
+      try {{
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+
+        if (type === 'start') {{
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.2);
+          gain.gain.setValueAtTime(0.12, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.3);
+        }} else if (type === 'success') {{
+          const freqs = [523.25, 659.25, 783.99, 1046.50];
+          freqs.forEach((f, idx) => {{
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, ctx.currentTime + idx * 0.08);
+            gain.gain.setValueAtTime(0.15, ctx.currentTime + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.08 + 0.6);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + idx * 0.08);
+            osc.stop(ctx.currentTime + idx * 0.08 + 0.6);
+          }});
+        }}
+      }} catch (e) {{}}
+    }}
+
+    // 3. 1 EUR MOKĖJIMO SIMULIACIJOS SISTEMA
+    function startPaymentSimulation() {{
+      playSciFiChime('start');
+      const modal = document.getElementById("paymentModalOverlay");
+      if (modal) modal.classList.add("active");
+
+      const s1 = document.getElementById("simStep1");
+      const s2 = document.getElementById("simStep2");
+      const s3 = document.getElementById("simStep3");
+      const banner = document.getElementById("simSuccessBanner");
+
+      // Reset
+      s1.className = "sim-step-item active";
+      s1.querySelector(".sim-step-circle").textContent = "";
+      s2.className = "sim-step-item";
+      s2.querySelector(".sim-step-circle").textContent = "";
+      s3.className = "sim-step-item";
+      s3.querySelector(".sim-step-circle").textContent = "";
+      banner.style.display = "none";
+
+      // Žingsnis 1 -> 2 (po 600ms)
+      setTimeout(() => {{
+        s1.className = "sim-step-item done";
+        s1.querySelector(".sim-step-circle").textContent = "✓";
+        s2.className = "sim-step-item active";
+      }}, 600);
+
+      // Žingsnis 2 -> 3 (po 1300ms)
+      setTimeout(() => {{
+        s2.className = "sim-step-item done";
+        s2.querySelector(".sim-step-circle").textContent = "✓";
+        s3.className = "sim-step-item active";
+      }}, 1300);
+
+      // Žingsnis 3 -> Sėkmė (po 2000ms)
+      setTimeout(() => {{
+        s3.className = "sim-step-item done";
+        s3.querySelector(".sim-step-circle").textContent = "✓";
+        playSciFiChime('success');
+        banner.style.display = "block";
+      }}, 2000);
+    }}
+
+    function finalizeBookUnlock() {{
+      const modal = document.getElementById("paymentModalOverlay");
+      if (modal) modal.classList.remove("active");
+      
+      showSecurityToast("🎉 1,00 € įnašas patvirtintas! Prieiga pilnai suteikta.");
+      unlockGateAnimation();
+    }}
+
+    function quickDemoUnlock() {{
+      showSecurityToast("✨ Demonstracinis režimas: Knyga sėkmingai atrakinta!");
+      unlockGateAnimation();
+    }}
+
+    function unlockGateAnimation() {{
+      const gate = document.getElementById("existentialGate");
+      const toolbar = document.getElementById("mainToolbar");
+      const content = document.getElementById("bookContent");
+
+      if (gate) {{
+        gate.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+        gate.style.opacity = "0";
+        gate.style.transform = "translateY(-40px)";
+        setTimeout(() => {{
+          gate.style.display = "none";
+          if (toolbar) toolbar.style.display = "flex";
+          if (content) content.style.display = "block";
+          document.body.classList.remove("gate-active");
+          window.scrollTo({{ top: 0, behavior: "smooth" }});
+        }}, 600);
+      }}
+    }}
+
+    // 4. VIRAL SHARE SISTEMA
+    function shareBook(platform) {{
+      const text = encodeURIComponent("Ar tu supranti, kas vyksta? 99,99% žmonių miega. Aš ką tik perskaičiau 'PO DARBO' monografiją... Nemiegokite:");
+      const url = encodeURIComponent(window.location.href || "https://dontbeafoolandopenyoureyesrightnow-project.com");
+
+      if (platform === 'telegram') {{
+        window.open(`https://t.me/share/url?url=${{url}}&text=${{text}}`, '_blank');
+      }} else if (platform === 'whatsapp') {{
+        window.open(`https://api.whatsapp.com/send?text=${{text}}%20${{url}}`, '_blank');
+      }} else if (platform === 'x') {{
+        window.open(`https://twitter.com/intent/tweet?text=${{text}}&url=${{url}}`, '_blank');
+      }} else if (platform === 'facebook') {{
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${{url}}`, '_blank');
+      }} else if (platform === 'copy') {{
+        try {{
+          navigator.clipboard.writeText(decodeURIComponent(text) + " " + decodeURIComponent(url));
+          showSecurityToast("📋 Nuoroda nukopijuota į iškarpinę!");
+        }} catch(e) {{
+          showSecurityToast("📋 Nukopijuota: dontbeafoolandopenyoureyesrightnow-project.com");
+        }}
+      }}
+    }}
+
+    function showSecurityToast(msg) {{
+      const toast = document.getElementById("toastNotification");
+      if (toast) {{
+        if (msg) toast.querySelector("span").textContent = msg;
+        toast.classList.add("show");
+        clearTimeout(window._toastTimeout);
+        window._toastTimeout = setTimeout(() => {{
+          toast.classList.remove("show");
+        }}, 3400);
+      }}
+    }}
+
+    // 5. TURINIO APSAUGOS SKYDAS (Anti-Copy / Anti-PDF DRM-Lite)
+    document.addEventListener('contextmenu', e => {{
+      e.preventDefault();
+      showSecurityToast("🔒 Dešinysis pelės klavišas išjungtas siekiant apsaugoti autorių teises.");
+    }});
+
+    window.addEventListener('beforeprint', e => {{
+      e.preventDefault();
+      showSecurityToast("🚫 Spausdinimas ir PDF eksportas yra visiškai blokuojami!");
+      return false;
+    }});
+
+    document.addEventListener('keydown', e => {{
+      const k = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && ['c', 'u', 's', 'p', 'a'].includes(k)) {{
+        e.preventDefault();
+        if (k === 'p') {{
+          showSecurityToast("🚫 Knygos PDF spausdinimas yra išjungtas siekiant išvengti nelegalių kopijų.");
+        }} else if (k === 'c' || k === 'a') {{
+          showSecurityToast("🔒 Teksto žymėjimas ir kopijavimas yra apsaugoti.");
+        }} else {{
+          showSecurityToast("🔒 Puslapio kodo peržiūra ir išsaugojimas yra apriboti.");
+        }}
+        return false;
+      }}
+      if (e.key === 'F12' || ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'j', 'c'].includes(k))) {{
+        e.preventDefault();
+        showSecurityToast("🔒 Inspekcijos įrankiai yra išjungti.");
+        return false;
+      }}
+    }});
+
+    // 6. SKAITYMO PROGRESO SEKIMAS
+    window.addEventListener('scroll', () => {{
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      const pBar = document.getElementById("progressBar");
+      if (pBar) {{
+        pBar.style.width = scrolled + "%";
+      }}
+    }});
+
+    function navigateToChapter(hash) {{
+      if (hash) {{
+        window.location.hash = hash;
+      }}
+    }}
+
+    // 7. REALUS AUDIO GROTUVAS SU BĖGANČIU TEKSTU
+    let isPlayingAudio = false;
+    let audioTimer = null;
+    let currentParagraphIdx = 0;
+
+    function toggleAudioReadAlong() {{
+      const btn = document.getElementById("audioBtn");
+      const audio = document.getElementById("bookAudioPlayer");
+      const paragraphs = document.querySelectorAll(".book-container p:not(.book-subtitle), .book-container blockquote");
+      
+      if (!isPlayingAudio) {{
+        isPlayingAudio = true;
+        btn.innerHTML = "⏸️ Pauzė";
+        btn.style.background = "var(--accent-cyan)";
+        btn.style.color = "#000";
+
+        if (audio) {{
+          audio.play().catch(e => console.log("Audio autoplay note:", e));
+        }}
+
+        audioTimer = setInterval(() => {{
+          document.querySelectorAll(".active-reading-chunk").forEach(el => {{
+            el.classList.remove("active-reading-chunk");
+          }});
+
+          if (currentParagraphIdx < paragraphs.length) {{
+            const activeEl = paragraphs[currentParagraphIdx];
+            activeEl.classList.add("active-reading-chunk");
+            activeEl.scrollIntoView({{ behavior: "smooth", block: "center" }});
+            currentParagraphIdx++;
+          }} else {{
+            toggleAudioReadAlong();
+          }}
+        }}, 4500);
+      }} else {{
+        isPlayingAudio = false;
+        clearInterval(audioTimer);
+        if (audio) {{
+          audio.pause();
+        }}
+        btn.innerHTML = "🎧 Klausytis (Audio)";
+        btn.style.background = "";
+        btn.style.color = "var(--accent-cyan)";
+        document.querySelectorAll(".active-reading-chunk").forEach(el => {{
+          el.classList.remove("active-reading-chunk");
+        }});
+      }}
+    }}
+
+    // 8. TEMŲ PERJUNGIMAS
+    const themes = ['theme-dark', 'theme-light', 'theme-sepia'];
+    let currentThemeIdx = 0;
+
+    function cycleTheme() {{
+      currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+      document.body.className = themes[currentThemeIdx];
+      const labels = ['🌙 Tamsi', '☀️ Šviesi', '📜 Sepija'];
+      const btn = document.getElementById("themeBtn");
+      if (btn) btn.innerHTML = labels[currentThemeIdx];
+      try {{
+        localStorage.setItem('book_theme', themes[currentThemeIdx]);
+      }} catch (e) {{}}
+    }}
+
+    try {{
+      const saved = localStorage.getItem('book_theme');
+      if (saved && themes.includes(saved)) {{
+        document.body.className = saved;
+        currentThemeIdx = themes.indexOf(saved);
+        const labels = ['🌙 Tamsi', '☀️ Šviesi', '📜 Sepija'];
+        const btn = document.getElementById("themeBtn");
+        if (btn) btn.innerHTML = labels[currentThemeIdx];
+      }}
+    }} catch(e) {{}}
+  </script>
+</body>
+</html>
+"""
+
+    # 1. Issaugome i dist/index.html
+    dist_output_path = os.path.join(DIST_DIR, "index.html")
+    with open(dist_output_path, "w", encoding="utf-8") as f:
+        f.write(full_html)
+    print(f"\n[SEKME] Knyga sekmingai sukompiliuota i: {dist_output_path}")
+
+    # 2. Issaugome i saknini index.html (tiesioginiam serveriui / GitHub Pages)
+    root_output_path = os.path.join(BASE_DIR, "index.html")
+    with open(root_output_path, "w", encoding="utf-8") as f:
+        f.write(full_html)
+    print(f"[SEKME] Sakninis failas sukompiliuotas i: {root_output_path}")
+
+if __name__ == "__main__":
+    compile_book()
