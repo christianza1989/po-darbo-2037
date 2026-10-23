@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-AI KNYGOS KOMPILIATORIUS (Antigravity Studio Edition v2)
+AI KNYGOS KOMPILIATORIUS (Antigravity Studio Edition v3)
 Sujungia visus skyrius is /chapters katalogo, pritaiko profesionalius leidybinius stilius,
-iterpia Egzistencinius Vartus, 1 EUR mokejimo simuliacija, audio grotuva bei sugeneruoja
-galutinius HTML failus i /dist/index.html ir projekto sakni /index.html.
+iterpia Egzistencinius Vartus, 1 EUR mokejimo simuliacija, audio grotuva su ADAM (ElevenLabs)
+bei sugeneruoja galutinius HTML failus i /dist/index.html ir projekto sakni /index.html.
 """
 
 import os
@@ -11,7 +11,6 @@ import sys
 import re
 import markdown
 
-# Uztikriname UTF-8 spausdinima konsoleje Windows aplinkoje
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
@@ -27,7 +26,7 @@ def get_chapter_files():
     return [os.path.join(CHAPTERS_DIR, f) for f in files]
 
 def read_file(path):
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
         return f.read()
 
 def extract_chapter_info(raw_text, basename):
@@ -35,12 +34,11 @@ def extract_chapter_info(raw_text, basename):
     if not m_title:
         m_title = re.search(r'#\s+(.*)', raw_text)
     title = m_title.group(1).strip() if m_title else basename.replace(".md", "").replace("_", " ").title()
-    title_clean = re.sub(r'<[^>]+>', '', title)
-    title_clean = title_clean.replace("", "—")
+    title_clean = re.sub(r'<[^>]+>', '', title).strip()
     
     m_num = re.search(r'<span class="chapter-number">(.*?)</span>', raw_text)
     num = m_num.group(1).strip() if m_num else ""
-    num_clean = re.sub(r'<[^>]+>', '', num).replace("", "—")
+    num_clean = re.sub(r'<[^>]+>', '', num).strip()
     
     section_id = basename.replace(".md", "")
     return {
@@ -63,8 +61,6 @@ def compile_book():
 
     for cpath in chapter_files:
         raw_text = read_file(cpath)
-        # Pataisome bet kokius sugadintus UTF-8 simbolius
-        raw_text = raw_text.replace("", "—")
         # Pataisome santykinius paveiksleliu kelius, kad veiktu ir saknyje, ir dist/
         raw_text = re.sub(r'src="\.\./assets/images/', 'src="assets/images/', raw_text)
 
@@ -258,7 +254,7 @@ def compile_book():
         {select_html}
       </select>
 
-      <button class="btn-pill" onclick="toggleAudioReadAlong()" id="audioBtn" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Klausytis profesionalaus neuroninio įgarsinimo su bėgančiu tekstu">
+      <button class="btn-pill" onclick="toggleAudioReadAlong()" id="audioBtn" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Klausytis autentiško ElevenLabs (Adam) įgarsinimo">
         🎧 Klausytis (Audio)
       </button>
 
@@ -271,10 +267,11 @@ def compile_book():
       </span>
     </div>
 
-    <!-- Nematomas Audio Grotuvas -->
+    <!-- Nematomas Audio Grotuvas su ElevenLabs Adam įgarsinimu -->
     <audio id="bookAudioPlayer" preload="auto">
-      <source src="assets/audio_sample_leonas.mp3" type="audio/mpeg">
-      <source src="../assets/audio_sample_leonas.mp3" type="audio/mpeg">
+      <source src="assets/audio/00_prologas.mp3" type="audio/mpeg">
+      <source src="../assets/audio/00_prologas.mp3" type="audio/mpeg">
+      <source src="assets/sample_brian.mp3" type="audio/mpeg">
     </audio>
   </header>
 
@@ -371,7 +368,6 @@ def compile_book():
       const s3 = document.getElementById("simStep3");
       const banner = document.getElementById("simSuccessBanner");
 
-      // Reset
       s1.className = "sim-step-item active";
       s1.querySelector(".sim-step-circle").textContent = "";
       s2.className = "sim-step-item";
@@ -380,21 +376,18 @@ def compile_book():
       s3.querySelector(".sim-step-circle").textContent = "";
       banner.style.display = "none";
 
-      // Žingsnis 1 -> 2 (po 600ms)
       setTimeout(() => {{
         s1.className = "sim-step-item done";
         s1.querySelector(".sim-step-circle").textContent = "✓";
         s2.className = "sim-step-item active";
       }}, 600);
 
-      // Žingsnis 2 -> 3 (po 1300ms)
       setTimeout(() => {{
         s2.className = "sim-step-item done";
         s2.querySelector(".sim-step-circle").textContent = "✓";
         s3.className = "sim-step-item active";
       }}, 1300);
 
-      // Žingsnis 3 -> Sėkmė (po 2000ms)
       setTimeout(() => {{
         s3.className = "sim-step-item done";
         s3.querySelector(".sim-step-circle").textContent = "✓";
@@ -598,13 +591,11 @@ def compile_book():
 </html>
 """
 
-    # 1. Issaugome i dist/index.html
     dist_output_path = os.path.join(DIST_DIR, "index.html")
     with open(dist_output_path, "w", encoding="utf-8") as f:
         f.write(full_html)
     print(f"\n[SEKME] Knyga sekmingai sukompiliuota i: {dist_output_path}")
 
-    # 2. Issaugome i saknini index.html (tiesioginiam serveriui / GitHub Pages)
     root_output_path = os.path.join(BASE_DIR, "index.html")
     with open(root_output_path, "w", encoding="utf-8") as f:
         f.write(full_html)
