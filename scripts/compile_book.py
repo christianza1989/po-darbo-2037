@@ -62,8 +62,22 @@ TERMS_PATTERNS = [
     ("world_model", r"\b(Pasaulio modelis|Pasaulio modeliai|pasaulio modelis|pasaulio modeliai|World Model|World Models)\b"),
     ("ubi", r"\b(UBI|UBC|Visuotinės Bazinės Pajamos|bazinės pajamos|bazinių pajamų)\b"),
     ("mind_uploading", r"\b(Sąmonės perkėlimas|sąmonės perkėlimas|Sąmonės perkėlimo|sąmonės perkėlimo|Mind Uploading)\b"),
-    ("karpathy_software", r"\b(Software 1\.0|Software 2\.0|Software 3\.0|Andrej Karpathy|Karpathy)\b"),
-    ("one_person_unicorn", r"\b(1 žmogaus vienaragis|vienaragio|vienaragį|One-person unicorn)\b")
+    ("karpathy_software", r"(Software 1\.0|Software 2\.0|Software 3\.0|Andrej Karpathy|Karpathy)"),
+    ("one_person_unicorn", r"(1 zmogaus vienaragis|vienaragio|vienaragi|1 žmogaus vienaragis|vienaragio|One-person unicorn)"),
+    ("backpropagation", r"(Backpropagation|atgalinė sklaida|atgalinės sklaidos|atgalinio sklidimo|atgaline sklaida)"),
+    ("kardashev_scale", r"(Kardaševo skalė|Kardaševo skalės|Kardaševo skalę|Kardashev Scale|Kardasevo skale|Kardaševo II|II Kardashev)"),
+    ("eliezeryudkowsky", r"(Eliezer Yudkowsky|Eliezerio Yudkowsky|Yudkowsky|Yudkowskis)"),
+    ("eric_schmidt", r"(Eric Schmidt|Erico Schmidto|Schmidtas|Schmidto)"),
+    ("david_baker", r"(David Baker|Davido Bakerio|Bakeris|Bakerio)"),
+    ("daron_acemoglu", r"(Daron Acemoglu|Darono Acemoglu|Acemoglu)"),
+    ("mustafa_suleyman", r"(Mustafa Suleyman|Mustafos Suleymano|Suleymanas)"),
+    ("brett_adcock", r"(Brett Adcock|Bretto Adcocko|Adcockas)"),
+    ("ship_of_theseus", r"(Tesėjo laivas|Tesėjo laivo|Tesėjo laivą|Tesejo laivas|Ship of Theseus)"),
+    ("landauer_limit", r"(Landauerio riba|Landauerio ribos|Landauerio principas|Landauerio limitas)"),
+    ("von_neumann_probes", r"(Von Neumanno zondai|Von Neumanno zondų|Von Neumanno zondas|Von Neumann probes)"),
+    ("crispr", r"(CRISPR|Cas9|genų inžinerija|DNR redagavimas)"),
+    ("longevity_escape_velocity", r"(pabėgimo greitis nuo senėjimo|Ilgaamžiškumo pabėgimo greitis|Longevity Escape Velocity)"),
+    ("paperclip_maximizer", r"(sąvaržėlių maksimizatorius|sąvaržėlių maksimizatoriaus|Paperclip Maximizer)")
 ]
 
 def auto_tag_glossary(html):
