@@ -81,7 +81,25 @@ TERMS_PATTERNS = [
 ]
 
 def auto_tag_glossary(html):
-    parts = re.split(r"(<[^>]+>)", html)
+    placeholders = {}
+    placeholder_idx = 0
+
+    def protect_block(match):
+        nonlocal placeholder_idx
+        token = f"___PROTECTED_BLOCK_{placeholder_idx}___"
+        placeholders[token] = match.group(0)
+        placeholder_idx += 1
+        return token
+
+    # Apsaugome SVG diagramas, antrastes, koda, mygtukus ir nuorodas
+    protected_html = re.sub(
+        r'(<svg[\s\S]*?</svg>|<pre[\s\S]*?</pre>|<code[\s\S]*?</code>|<script[\s\S]*?</script>|<style[\s\S]*?</style>|<h[1-6][\s\S]*?</h[1-6]>|<button[\s\S]*?</button>|<a\s[\s\S]*?</a>)',
+        protect_block,
+        html,
+        flags=re.IGNORECASE
+    )
+
+    parts = re.split(r"(<[^>]+>)", protected_html)
     for key, pat in TERMS_PATTERNS:
         count = 0
         for i in range(len(parts)):
@@ -92,7 +110,12 @@ def auto_tag_glossary(html):
                     word = m.group(0)
                     return f'<span class="wiki-term" onclick="openWikiModal(\'{key}\')" title="Spustelėkite analizei: {word}">{word}</span>'
                 parts[i] = re.sub(pat, repl, parts[i], count=3 - count)
-    return "".join(parts)
+
+    tagged_html = "".join(parts)
+    for token, original in placeholders.items():
+        tagged_html = tagged_html.replace(token, original)
+
+    return tagged_html
 
 def get_chapter_files():
     files = [f for f in os.listdir(CHAPTERS_DIR) if f.endswith(".md")]
