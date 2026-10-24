@@ -2208,10 +2208,7 @@ figcaption {
       </span>
     </div>
 
-    <audio id="bookAudioPlayer" preload="auto">
-      <source src="assets/audio/ru/00_prologas.mp3" type="audio/mpeg">
-      <source src="../assets/audio/ru/00_prologas.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="bookAudioPlayer" preload="auto" src="assets/audio/ru/00_prologas.mp3"></audio>
   </header>
 
   <!-- Main Content -->
@@ -5399,10 +5396,17 @@ figcaption {
       "16_praktinis_manifestas": "assets/audio/lt/16_praktinis_manifestas.mp3"
     };
 
-    function getActiveChapterId() {
+        function getActiveChapterId() {
+      if (window.location.hash) {
+        const hashId = window.location.hash.replace("#", "");
+        const hashEl = document.getElementById(hashId);
+        if (hashEl && hashEl.classList.contains("chapter")) {
+          return hashId;
+        }
+      }
       const chapters = document.querySelectorAll(".chapter");
       let activeId = "00_prologas";
-      const scrollPos = window.scrollY + 120;
+      const scrollPos = window.scrollY + 140;
       chapters.forEach(ch => {
         if (ch.offsetTop <= scrollPos) {
           activeId = ch.id;
@@ -5417,11 +5421,12 @@ figcaption {
       const chId = getActiveChapterId();
       const map = (currentVoice === "ru") ? chapterAudioMapRu : chapterAudioMapLt;
       const track = map[chId] || "assets/audio/ru/00_prologas.mp3";
-      if (!audio.src.endsWith(track)) {
+      if (!audio.src || !audio.src.endsWith(track)) {
         const wasPlaying = isPlayingAudio;
         audio.src = track;
+        audio.load();
         if (wasPlaying) {
-          audio.play().catch(e => console.log(e));
+          audio.play().catch(e => console.warn("Audio play:", e));
         }
       }
     }
@@ -5439,14 +5444,32 @@ figcaption {
 
       if (!isPlayingAudio) {
         isPlayingAudio = true;
-        btn.innerHTML = "⏸️ Пауза";
-        btn.style.background = "var(--accent-cyan)";
-        btn.style.color = "#000";
-
-        if (audio) {
-          audio.play().catch(e => console.log("Audio autoplay note:", e));
+        if (btn) {
+          btn.innerHTML = "⏸️ Пауза";
+          btn.style.background = "var(--accent-cyan)";
+          btn.style.color = "#000";
         }
 
+        if (audio) {
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise.then(() => {
+              const chId = getActiveChapterId();
+              showSecurityToast("🎧 Воспроизведение: " + chId.replace(/_/g, " "));
+            }).catch(e => {
+              console.warn("Audio playback note:", e);
+              showSecurityToast("⚠️ Нажмите на страницу, чтобы разрешить аудио в браузере.");
+              isPlayingAudio = false;
+              if (btn) {
+                btn.innerHTML = "🎧 Слушать (Аудио)";
+                btn.style.background = "";
+                btn.style.color = "var(--accent-cyan)";
+              }
+            });
+          }
+        }
+
+        clearInterval(audioTimer);
         audioTimer = setInterval(() => {
           document.querySelectorAll(".active-reading-chunk").forEach(el => {
             el.classList.remove("active-reading-chunk");
@@ -5467,14 +5490,33 @@ figcaption {
         if (audio) {
           audio.pause();
         }
-        btn.innerHTML = "🎧 Слушать (Аудио)";
-        btn.style.background = "";
-        btn.style.color = "var(--accent-cyan)";
+        if (btn) {
+          btn.innerHTML = "🎧 Слушать (Аудио)";
+          btn.style.background = "";
+          btn.style.color = "var(--accent-cyan)";
+        }
         document.querySelectorAll(".active-reading-chunk").forEach(el => {
           el.classList.remove("active-reading-chunk");
         });
       }
     }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const audio = document.getElementById("bookAudioPlayer");
+      if (audio) {
+        audio.onended = () => {
+          isPlayingAudio = false;
+          clearInterval(audioTimer);
+          const btn = document.getElementById("audioBtn");
+          if (btn) {
+            btn.innerHTML = "🎧 Слушать (Аудио)";
+            btn.style.background = "";
+            btn.style.color = "var(--accent-cyan)";
+          }
+          showSecurityToast("🎧 Воспроизведение главы завершено.");
+        };
+      }
+    });
 
     function navigateToChapter(hash) {
       if (!hash) return;

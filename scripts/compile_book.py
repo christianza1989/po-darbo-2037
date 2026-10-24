@@ -398,10 +398,7 @@ def compile_book():
     </div>
 
     <!-- Nematomas Audio Grotuvas su ElevenLabs Adam įgarsinimu -->
-    <audio id="bookAudioPlayer" preload="auto">
-      <source src="assets/audio/00_prologas.mp3" type="audio/mpeg">
-      <source src="../assets/audio/00_prologas.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="bookAudioPlayer" preload="auto" src="assets/audio/lt/00_prologas.mp3"></audio>
   </header>
 
   <!-- ==========================================================================
@@ -718,16 +715,21 @@ def compile_book():
       }}
     }}
 
-    // 6. DINAMINIS AUDIO ŽEMĖLAPIS PAGAL KALBAS IR BALSUS
+            // 6. DINAMINIS AUDIO ŽEMĖLAPIS PAGAL KALBAS IR BALSUS
     let currentVoice = "lt";
+    let isPlayingAudio = false;
+    let audioTimer = null;
+    let currentParagraphIdx = 0;
 
     function changeVoice(voice) {{
       currentVoice = voice;
       updateAudioTrackForCurrentChapter();
       if (isPlayingAudio) {{
         const audio = document.getElementById("bookAudioPlayer");
-        if (audio) audio.play().catch(e => console.log(e));
+        if (audio) audio.play().catch(e => console.warn(e));
       }}
+      const voiceNames = {{ "lt": "Leonas (LT)", "ru": "Dmitrijus (RU)", "adam": "Adam (ElevenLabs)" }};
+      showSecurityToast("🎙️ Pasirinktas balsas: " + (voiceNames[voice] || voice));
     }}
 
     const chapterAudioMapLt = {{
@@ -770,6 +772,25 @@ def compile_book():
       "16_praktinis_manifestas": "assets/audio/ru/16_praktinis_manifestas.mp3"
     }};
 
+    function getActiveChapterId() {{
+      if (window.location.hash) {{
+        const hashId = window.location.hash.replace("#", "");
+        const hashEl = document.getElementById(hashId);
+        if (hashEl && hashEl.classList.contains("chapter")) {{
+          return hashId;
+        }}
+      }}
+      const chapters = document.querySelectorAll(".chapter");
+      let activeId = "00_prologas";
+      const scrollPos = window.scrollY + 140;
+      chapters.forEach(ch => {{
+        if (ch.offsetTop <= scrollPos) {{
+          activeId = ch.id;
+        }}
+      }});
+      return activeId;
+    }}
+
     function updateAudioTrackForCurrentChapter() {{
       const audio = document.getElementById("bookAudioPlayer");
       if (!audio) return;
@@ -783,11 +804,12 @@ def compile_book():
         track = chapterAudioMapLt[chId] || "assets/audio/lt/00_prologas.mp3";
       }}
 
-      if (!audio.src.endsWith(track)) {{
+      if (!audio.src || !audio.src.endsWith(track)) {{
         const wasPlaying = isPlayingAudio;
         audio.src = track;
+        audio.load();
         if (wasPlaying) {{
-          audio.play().catch(e => console.log(e));
+          audio.play().catch(e => console.warn("Audio play:", e));
         }}
       }}
     }}
@@ -801,14 +823,32 @@ def compile_book():
 
       if (!isPlayingAudio) {{
         isPlayingAudio = true;
-        btn.innerHTML = "⏸️ Pauzė";
-        btn.style.background = "var(--accent-cyan)";
-        btn.style.color = "#000";
-
-        if (audio) {{
-          audio.play().catch(e => console.log("Audio autoplay note:", e));
+        if (btn) {{
+          btn.innerHTML = "⏸️ Pauzė";
+          btn.style.background = "var(--accent-cyan)";
+          btn.style.color = "#000";
         }}
 
+        if (audio) {{
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {{
+            playPromise.then(() => {{
+              const chId = getActiveChapterId();
+              showSecurityToast("🎧 Groja: " + chId.replace(/_/g, " "));
+            }}).catch(e => {{
+              console.warn("Audio playback note:", e);
+              showSecurityToast("⚠️ Spustelėkite puslapį, kad leistumėte garsą naršyklėje.");
+              isPlayingAudio = false;
+              if (btn) {{
+                btn.innerHTML = "🎧 Klausytis (Audio)";
+                btn.style.background = "";
+                btn.style.color = "var(--accent-cyan)";
+              }}
+            }});
+          }}
+        }}
+
+        clearInterval(audioTimer);
         audioTimer = setInterval(() => {{
           document.querySelectorAll(".active-reading-chunk").forEach(el => {{
             el.classList.remove("active-reading-chunk");
@@ -829,14 +869,33 @@ def compile_book():
         if (audio) {{
           audio.pause();
         }}
-        btn.innerHTML = "🎧 Klausytis (Audio)";
-        btn.style.background = "";
-        btn.style.color = "var(--accent-cyan)";
+        if (btn) {{
+          btn.innerHTML = "🎧 Klausytis (Audio)";
+          btn.style.background = "";
+          btn.style.color = "var(--accent-cyan)";
+        }}
         document.querySelectorAll(".active-reading-chunk").forEach(el => {{
           el.classList.remove("active-reading-chunk");
         }});
       }}
     }}
+
+    window.addEventListener("DOMContentLoaded", () => {{
+      const audio = document.getElementById("bookAudioPlayer");
+      if (audio) {{
+        audio.onended = () => {{
+          isPlayingAudio = false;
+          clearInterval(audioTimer);
+          const btn = document.getElementById("audioBtn");
+          if (btn) {{
+            btn.innerHTML = "🎧 Klausytis (Audio)";
+            btn.style.background = "";
+            btn.style.color = "var(--accent-cyan)";
+          }}
+          showSecurityToast("🎧 Skyriaus įrašas baigtas.");
+        }};
+      }}
+    }});
 
     // 8. TEMŲ PERJUNGIMAS
     const themes = ['theme-dark', 'theme-light', 'theme-sepia'];
